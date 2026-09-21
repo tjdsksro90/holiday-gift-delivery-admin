@@ -1,18 +1,14 @@
 import { HttpResponse, http } from 'msw'
 import type { CustomerListResponse, CustomerRevealed } from '@/types/customer'
 import { API_BASE } from '../apiBase'
-import { findMaskedCustomer, findRawCustomer, maskedCustomers } from '../data/customers'
+import { findMaskedCustomer, findRawCustomer, searchMaskedCustomers } from '../data/customers'
 
 export const customerHandlers = [
   http.get(`${API_BASE}/customers`, ({ request }) => {
     const url = new URL(request.url)
     const page = Number(url.searchParams.get('page') ?? '1')
     const pageSize = Number(url.searchParams.get('pageSize') ?? '20')
-    const keyword = url.searchParams.get('keyword')?.trim()
-
-    const filtered = keyword
-      ? maskedCustomers.filter((c) => c.name.includes(keyword))
-      : maskedCustomers
+    const filtered = searchMaskedCustomers(url.searchParams.get('keyword') ?? undefined)
 
     const start = (page - 1) * pageSize
     const body: CustomerListResponse = {

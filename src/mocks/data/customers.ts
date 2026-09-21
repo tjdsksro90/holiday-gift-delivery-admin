@@ -45,3 +45,10 @@ export function findRawCustomer(id: string): RawCustomer | undefined {
 export function findMaskedCustomer(id: string): Customer | undefined {
   return maskedCustomers.find((c) => c.id === id)
 }
+
+/** 이름 부분 일치로 검색한다. 검색 대상은 항상 마스킹된 목록이다. */
+export function searchMaskedCustomers(keyword?: string): Customer[] {
+  const trimmed = keyword?.trim()
+  if (!trimmed) return maskedCustomers
+  return maskedCustomers.filter((c) => c.name.includes(trimmed))
+}
