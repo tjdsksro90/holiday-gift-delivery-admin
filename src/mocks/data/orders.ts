@@ -1,12 +1,6 @@
-import type { GiftSetItem, Order, OrderStatus } from '@/types/order'
+import type { Order, OrderStatus } from '@/types/order'
 import { rawCustomers } from './customers'
-
-const CATALOG: GiftSetItem[] = [
-  { productId: 'set-spam', productName: '스팸 선물세트 26호', quantity: 1, unitPrice: 45_000 },
-  { productId: 'set-fruit', productName: '과일 선물세트', quantity: 1, unitPrice: 68_000 },
-  { productId: 'set-oil', productName: '식용유 선물세트', quantity: 1, unitPrice: 39_000 },
-  { productId: 'set-hanwoo', productName: '한우 선물세트', quantity: 1, unitPrice: 180_000 },
-]
+import { PRODUCT_CATALOG } from './products'
 
 const STATUSES: OrderStatus[] = [
   'PENDING',
@@ -19,7 +13,7 @@ const STATUSES: OrderStatus[] = [
 
 function buildOrder(index: number): Order {
   const customer = rawCustomers[index % rawCustomers.length]
-  const item = CATALOG[index % CATALOG.length]
+  const item = PRODUCT_CATALOG[index % PRODUCT_CATALOG.length]
   const status = STATUSES[index % STATUSES.length]
   const hasDelivery = status === 'SHIPPED' || status === 'DELIVERED'
   return {

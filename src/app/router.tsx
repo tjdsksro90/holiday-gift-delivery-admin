@@ -33,6 +33,11 @@ const DeliveryTrackingPage = lazy(() =>
     default: m.DeliveryTrackingPage,
   })),
 )
+const InventoryListPage = lazy(() =>
+  import('@/features/inventory/pages/InventoryListPage').then((m) => ({
+    default: m.InventoryListPage,
+  })),
+)
 
 function PageFallback() {
   return (
@@ -56,13 +61,17 @@ export const router = createBrowserRouter([
         children: [
           { path: '/', element: <Navigate to="/customers" replace /> },
           { path: '/customers', element: withSuspense(<CustomerListPage />) },
-          { path: '/customers/:customerId', element: withSuspense(<CustomerDetailPage />) },
+          {
+            path: '/customers/:customerId',
+            element: withSuspense(<CustomerDetailPage />),
+          },
           { path: '/orders', element: withSuspense(<OrderListPage />) },
           { path: '/orders/:orderId', element: withSuspense(<OrderDetailPage />) },
           {
             path: '/orders/:orderId/delivery',
             element: withSuspense(<DeliveryTrackingPage />),
           },
+          { path: '/inventory', element: withSuspense(<InventoryListPage />) },
         ],
       },
     ],

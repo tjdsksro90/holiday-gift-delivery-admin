@@ -1,4 +1,5 @@
 import GroupIcon from '@mui/icons-material/Group'
+import Inventory2Icon from '@mui/icons-material/Inventory2'
 import LocalShippingIcon from '@mui/icons-material/LocalShipping'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
 import {
@@ -16,6 +17,7 @@ const DRAWER_WIDTH = 220
 const NAV_ITEMS = [
   { path: '/customers', label: '고객 관리', icon: <GroupIcon /> },
   { path: '/orders', label: '주문 관리', icon: <ReceiptLongIcon /> },
+  { path: '/inventory', label: '재고 관리', icon: <Inventory2Icon /> },
 ]
 
 export function Sidebar() {
