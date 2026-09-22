@@ -26,6 +26,7 @@ src/
       hooks/              react-query 훅
       components/         해당 도메인 전용 컴포넌트
       pages/               라우트에 매핑되는 페이지 컴포넌트
+  hooks/          여러 feature가 공유하는 범용 훅(디바운스 등)
   store/          zustand 스토어
   theme/          MUI 테마
   types/          도메인 타입
@@ -140,6 +141,38 @@ API 요청을 가로채 가짜 데이터를 돌려준다(`src/mocks/`). **`npm r
 - 실제 백엔드가 준비되면 `src/mocks` 폴더와 `main.tsx`의 `enableMocking` 호출을 지우고
   각 feature의 `api.ts`를 실제 엔드포인트에 맞게 조정하면 된다
 
+## 성능 개선
+
+기능 구현이 끝난 뒤 실제로 확인한 문제 3가지를 고쳤다. 셋 다 추측이 아니라 코드/네트워크
+로그/빌드 결과로 확인한 것들이다.
+
+1. **검색 인풋에 디바운스가 없어서 매 keystroke마다 API가 호출됨.**
+   [CustomerListPage](src/features/customers/pages/CustomerListPage.tsx)의 검색어가
+   react-query key에 바로 들어가서 "김민준"을 치면 `GET /customers?keyword=...`가 3번
+   나갔다. [useDebouncedValue](src/hooks/useDebouncedValue.ts) 훅(300ms)을 추가해서
+   실제 검색에는 입력이 멈춘 뒤의 값만 쓰도록 고쳤다 — 브라우저 네트워크 로그로 **3번 →
+   1번**을 확인했다. 페이지 번호를 1로 되돌리는 로직도 `useEffect + setState` 대신
+   렌더링 중 값 비교로 처리해서(ESLint `react-hooks/set-state-in-effect`가 잡아준
+   패턴) 불필요한 추가 렌더를 만들지 않는다.
+
+2. **재고 데이터가 안 바뀌어도 매 렌더마다 새 `Set`을 생성.**
+   [useLowStockProductIds](src/features/inventory/hooks/useLowStockProductIds.ts)가
+   `useInventory()`의 결과로 `Set`을 매번 새로 만들고 있었다. `useMemo`로 감싸서
+   `data`가 실제로 바뀔 때만 재계산하도록 고쳤다.
+
+3. **벤더 코드와 앱 코드가 같은 청크에 섞여 있어서, 코드 한 줄만 바뀌어도 벤더 청크
+   전체가 캐시 무효화됨.** [vite.config.ts](vite.config.ts)에 `manualChunks`를 추가해
+   React/router, MUI+emotion, TanStack Query+axios+zustand를 각각 별도 벤더 청크로
+   분리했다. `npm run build` 결과 비교:
+
+   |                               | Before                                           | After                                                                                                |
+   | ----------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+   | 배포마다 무효화되는 진입 청크 | `index` 380.89KB + `httpClient` 177.37KB ≈ 558KB | `index` 6.54KB                                                                                       |
+   | 벤더 코드                     | 앱 코드와 한 덩어리                              | `vendor-react`/`vendor-mui`/`vendor-data`/`vendor`로 분리, 의존성 버전이 그대로면 배포해도 캐시 유지 |
+
+   전체 번들 용량 자체가 줄어드는 게 아니라(오히려 청크 분리 오버헤드로 총량은 살짝
+   늘어난다), **배포 시 사용자가 다시 받아야 하는 용량**이 약 98.5% 줄어드는 효과다.
+
 ## 테스트
 
 Vitest + React Testing Library로 구성했다. jsdom 환경, jest-dom 매처는
@@ -154,7 +187,8 @@ npm run test:run   # 1회 실행 (CI용)
 지금까지 다룬 대상:
 
 - 순수 유틸/로직: [mask.test.ts](src/utils/mask.test.ts),
-  [statusLabels.test.ts](src/features/delivery/statusLabels.test.ts)
+  [statusLabels.test.ts](src/features/delivery/statusLabels.test.ts),
+  [useDebouncedValue.test.ts](src/hooks/useDebouncedValue.test.ts) (fake timer로 디바운스 타이밍 검증)
 - 목업 서버의 상태를 갖는 로직: [deliveries.test.ts](src/mocks/data/deliveries.test.ts)
   (배송 상태 전이), [inventory.test.ts](src/mocks/data/inventory.test.ts) (재고 조정),
   [customers.test.ts](src/mocks/data/customers.test.ts) (검색, 마스킹 무결성 검증)
