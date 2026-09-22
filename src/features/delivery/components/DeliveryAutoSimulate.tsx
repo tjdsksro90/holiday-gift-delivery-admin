@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import StopIcon from '@mui/icons-material/Stop'
 import { Alert, Button, Stack, Typography } from '@mui/material'
+import { MOCKS_ENABLED } from '@/mocks/isEnabled'
 import type { Delivery } from '@/types/delivery'
 import { useDeliveryStatusActions } from '../hooks/useDeliveryStatusActions'
 import { isTerminalDeliveryStatus } from '../statusLabels'
@@ -30,7 +31,7 @@ export function DeliveryAutoSimulate({ delivery }: { delivery: Delivery }) {
     return () => clearInterval(id)
   }, [isActive])
 
-  if (!import.meta.env.DEV) return null
+  if (!MOCKS_ENABLED) return null
 
   return (
     <Stack spacing={1}>

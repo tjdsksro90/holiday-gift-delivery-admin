@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Alert, Box, Button, Paper, Stack, TextField, Typography } from '@mui/material'
+import { MOCKS_ENABLED } from '@/mocks/isEnabled'
 import { TEST_ACCOUNT } from '@/mocks/testAccount'
 import { useLogin } from '../hooks/useLogin'
 
@@ -44,7 +45,7 @@ export function LoginPage() {
           <Button type="submit" variant="contained" disabled={isPending}>
             로그인
           </Button>
-          {import.meta.env.DEV && (
+          {MOCKS_ENABLED && (
             <Alert severity="info" variant="outlined">
               로컬 목업 테스트 계정 — <br />
               사번: {TEST_ACCOUNT.employeeId} / 비밀번호: {TEST_ACCOUNT.password}
